@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>منصة طلاب الصيدلة | السنة الثانية</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#e5e9f0;--accent:#3867d6;--green:#16865b;--red:#c34848}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif;line-height:1.75}
+header{background:linear-gradient(125deg,#111827,#263d64);color:white;padding:30px 18px 26px}
+.wrap{max-width:980px;margin:auto;padding:0 16px}header h1{margin:0;font-size:27px}header p{margin:5px 0 0;color:#d5deee}
+main{padding:22px 0 60px}.panel,.subject,.study{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:15px;box-shadow:0 5px 18px #17203308}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#f7f9fd;border-radius:13px;padding:12px;text-align:center}.stat b{display:block;font-size:23px}.muted{color:var(--muted);font-size:13px}
+h2{font-size:20px;margin:0 0 12px}h3{font-size:17px;margin:0 0 5px}
+button{font:inherit;cursor:pointer;border:0;border-radius:11px;padding:10px 14px;background:#edf2ff;color:#234caa;font-weight:700}
+button.primary{background:var(--accent);color:#fff}button.good{background:#e6f6ef;color:#13734d}button.bad{background:#fff0f0;color:#a73737}button:disabled{opacity:.45;cursor:not-allowed}
+.subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.subject{margin:0;cursor:pointer;transition:.15s}.subject:hover{border-color:#9bb4ef;transform:translateY(-2px)}
+.subject .count{font-size:12px;color:var(--muted)}.soon{opacity:.7;cursor:default}.crumb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cardq{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fbfcff;margin:14px 0}
+.question{font-size:19px;font-weight:700;min-height:62px}.answer{display:none;border-top:1px solid var(--line);margin-top:15px;padding-top:13px;white-space:pre-wrap}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.bar{height:8px;background:#e9edf5;border-radius:9px;overflow:hidden;margin:10px 0}.bar span{display:block;height:100%;background:var(--green);width:0}
+.hidden{display:none!important}.empty{text-align:center;padding:24px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+@media(max-width:520px){header h1{font-size:22px}.stats{gap:6px}.stat{padding:9px 4px}.stat b{font-size:19px}.panel,.subject,.study{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><h1>منصة طلاب الصيدلة</h1><p>السنة الثانية · بطاقات سؤال وجواب للمراجعة</p></div></header>
+<main class="wrap">
+<section id="home">
+<div class="panel"><h2>تقدّمك على هذا الجهاز</h2><div class="stats"><div class="stat"><b id="total">0</b><span class="muted">بطاقة تمت مراجعتها</span></div><div class="stat"><b id="known">0</b><span class="muted">عرفتها</span></div><div class="stat"><b id="wrong">0</b><span class="muted">تحتاج مراجعة</span></div></div><p class="muted">يُحفظ التقدم في المتصفح على جهازك فقط، ولا يتزامن تلقائياً بين الأجهزة.</p></div>
+<div class="panel"><h2>المواد الدراسية</h2><div class="subjects" id="subjects"></div></div>
+</section>
+<section id="study" class="hidden">
+<div class="crumb"><button onclick="goHome()">← المواد</button><span id="crumb"></span></div>
+<div class="study">
+<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h2 id="deckTitle"></h2><div class="muted" id="deckMeta"></div></div><button id="mistakesBtn" onclick="toggleMistakes()">مراجعة الأخطاء فقط</button></div>
+<div class="bar"><span id="progress"></span></div><div class="muted" id="position"></div>
+<div id="cardArea"></div>
+<div class="actions"><button id="prev" onclick="move(-1)">السابق</button><button class="primary" id="reveal" onclick="reveal()">إظهار الإجابة</button><button id="next" onclick="move(1)">التالي</button></div>
+<div class="actions hidden" id="markActions"><button class="good" onclick="mark(true)">عرفتها</button><button class="bad" onclick="mark(false)">أخطأت</button></div>
+<div class="actions"><button onclick="resetDeck()">إعادة حالة هذه المحاضرة</button></div>
+</div></section>
+</main><footer>منصة تعليمية مجانية · المحتوى قابل للإضافة والتحديث</footer>
+<script>
+const DATA=[
+{id:"pharm",name:"الصيدلانيات 1",desc:"المحاليل الصيدلانية والشرابات",cards:[
+["ما المقصود بالمحلول الصيدلاني؟","مستحضر سائل متجانس يحتوي مادة أو أكثر مذابة في مذيب مناسب."],
+["ما مكونات المحلول؟","مذاب واحد أو أكثر، ومذيب، وقد تضاف سواغات مثل المواد الحافظة والمنكهات."],
+["ما المقصود بالشراب الصيدلاني؟","مستحضر مائي فموي حلو المذاق، غالباً يحتوي تركيزاً مرتفعاً من السكروز أو مواد محلية بديلة."],
+["ما وظيفة السكروز في الشراب؟","إعطاء الحلاوة وتحسين تقبل الطعم، كما يساهم بتركيزه المرتفع في خفض النشاط المائي."],
+["ما الفرق الأساسي بين المحلول والمعلق؟","المحلول متجانس ومذاباته على المستوى الجزيئي أو الأيوني، أما المعلق فيحتوي جسيمات غير ذائبة موزعة في السائل."],
+["لماذا تُستخدم النكهات في الشرابات؟","لتحسين الطعم وإخفاء الطعم غير المقبول لبعض المواد الدوائية."],
+["ما فائدة المواد الحافظة؟","الحد من نمو الكائنات الدقيقة وإطالة فترة صلاحية المستحضر عند استخدامها بالتركيز المناسب."],
+["ما المقصود بالذوبانية؟","أقصى كمية من مادة يمكن أن تذوب في كمية محددة من مذيب عند درجة حرارة وضغط محددين."],
+["اذكر عوامل قد تؤثر في سرعة الذوبان.","التحريك، مساحة سطح المذاب، درجة الحرارة، وطبيعة المذاب والمذيب."],
+["ما الفرق بين الذوبانية وسرعة الذوبان؟","الذوبانية تصف كمية المادة التي يمكن أن تذوب عند الاتزان، أما سرعة الذوبان فتصف معدل انتقالها إلى المحلول."]
+]},
+{id:"physical",name:"الكيمياء الفيزيائية",desc:"الحركية الكيميائية – المحاضرتان 7 و8 والمسائل",cards:[
+["ما موضوع الحركية الكيميائية؟","دراسة سرعة التفاعلات الكيميائية والعوامل المؤثرة فيها وآلية حدوثها."],
+["ما المقصود بسرعة التفاعل؟","معدل تغير تركيز أحد المتفاعلات أو النواتج بالنسبة للزمن."],
+["ما قانون السرعة العام؟","للتفاعل aA + bB → نواتج: v = k[A]^m[B]^n، وتحدد الرتب تجريبياً."],
+["ما المقصود بثابت السرعة k؟","ثابت تناسب في قانون السرعة، وتتغير قيمته بتغير درجة الحرارة وطبيعة التفاعل."],
+["هل رتبة التفاعل تساوي معاملات المعادلة دائماً؟","لا؛ تُحدد رتبة التفاعل تجريبياً، ولا تساوي المعاملات إلا في حالات خاصة مثل الخطوة الأولية."],
+["ما الرتبة الكلية للتفاعل؟","مجموع أسس تراكيز المواد في قانون السرعة."],
+["ما قانون السرعة للتفاعل من الرتبة الصفرية؟","v = k، وتكامل القانون: [A]t = [A]0 − kt."],
+["ما وحدة k في التفاعل الصفري؟","تركيز/زمن، مثل mol·L⁻¹·s⁻¹."],
+["ما قانون السرعة المتكامل للرتبة الأولى؟","ln([A]0/[A]t) = kt، أو ln[A]t = ln[A]0 − kt."],
+["ما وحدة k للرتبة الأولى؟","مقلوب الزمن، مثل s⁻¹."],
+["ما قانون نصف العمر للرتبة الأولى؟","t½ = 0.693/k، ولا يعتمد على التركيز الابتدائي."],
+["ما قانون السرعة المتكامل للرتبة الثانية عندما v=k[A]²؟","1/[A]t = 1/[A]0 + kt."],
+["ما وحدة k للرتبة الثانية؟","مقلوب التركيز مضروباً بالزمن، مثل L·mol⁻¹·s⁻¹."],
+["كيف يتغير نصف العمر في التفاعل الصفري؟","يتناسب طردياً مع التركيز الابتدائي: t½ = [A]0/(2k)."],
+["ما نصف العمر للرتبة الثانية عندما v=k[A]²؟","t½ = 1/(k[A]0)."],
+["كيف نحدد رتبة التفاعل بيانياً؟","نختبر الخطية: [A] مقابل الزمن للرتبة صفر، ln[A] مقابل الزمن للأولى، و1/[A] مقابل الزمن للثانية."],
+["ما ميل منحنى الرتبة الأولى عند رسم ln[A] مقابل الزمن؟","الميل = −k."],
+["ما ميل منحنى الرتبة الثانية عند رسم 1/[A] مقابل الزمن؟","الميل = +k."],
+["ما المقصود بنصف العمر؟","الزمن اللازم لانخفاض تركيز المتفاعل إلى نصف قيمته الابتدائية."],
+["كيف تؤثر زيادة درجة الحرارة غالباً في سرعة التفاعل؟","تزيد سرعة التفاعل غالباً بسبب زيادة نسبة الجزيئات القادرة على تجاوز طاقة التنشيط."],
+["ما معادلة أرينيوس؟","k = A e^(−Ea/RT)، حيث Ea طاقة التنشيط وT درجة الحرارة المطلقة."],
+["ما المقصود بطاقة التنشيط؟","الحد الأدنى من الطاقة اللازمة لتصل الجزيئات إلى الحالة الانتقالية وتتمكن من التفاعل."],
+["كيف يؤثر العامل الحفاز؟","يوفر مساراً بديلاً بطاقة تنشيط أقل، فيزيد سرعة التفاعل دون أن يُستهلك كلياً."],
+["هل يغير العامل الحفاز ثابت الاتزان؟","لا يغير موضع الاتزان أو ثابت الاتزان؛ يسرّع الوصول إلى الاتزان في الاتجاهين."],
+["ما المقصود بالتفاعل من الرتبة الكاذبة؟","تفاعل رتبته الظاهرية أقل من رتبته الحقيقية بسبب وجود أحد المتفاعلات بزيادة كبيرة فيبقى تركيزه شبه ثابت."],
+["لماذا قد نستخدم اللوغاريتم في مسائل الرتبة الأولى؟","لأن القانون المتكامل يتضمن ln([A]0/[A]t)، ويمكن منه حساب k أو الزمن أو التركيز."],
+["إذا تضاعف تركيز A في تفاعل سرعته v=k[A]²، ماذا يحدث للسرعة؟","تزداد أربعة أضعاف لأن السرعة تتناسب مع مربع التركيز."],
+["إذا تضاعف تركيز A في تفاعل من الرتبة الأولى، ماذا يحدث للسرعة؟","تتضاعف السرعة."]
+]},
+{id:"organic",name:"الكيمياء العضوية 1",desc:"الألكاينات والأغوال – محاضرة 4",cards:[
+["ما الألكاينات؟","هيدروكربونات غير مشبعة تحتوي رابطة ثلاثية واحدة على الأقل بين ذرتي كربون."],
+["ما الصيغة العامة للألكاينات المفتوحة ذات رابطة ثلاثية واحدة؟","CnH2n−2."],
+["ما تهجين ذرتي الكربون في الرابطة الثلاثية؟","sp."],
+["ما الشكل الهندسي حول كربون الرابطة الثلاثية؟","خطي، وزاوية الروابط تقارب 180°."],
+["ما أبسط أفراد الألكاينات؟","الإيثاين (الأسيتيلين) C₂H₂."],
+["كيف تتم تسمية الألكاينات؟","اختيار أطول سلسلة تحتوي الرابطة الثلاثية وترقيمها من الطرف الأقرب للرابطة، مع اللاحقة -اين."],
+["ما المقصود بالألكاين الطرفي؟","ألكاين تقع الرابطة الثلاثية عند طرف السلسلة ويكون على كربونها الطرفي هيدروجين."],
+["ما المقصود بالألكاين الداخلي؟","ألكاين تقع الرابطة الثلاثية بين ذرتي كربون داخليتين في السلسلة."],
+["ما تفاعل الهدرجة للألكاينات؟","إضافة الهيدروجين إلى الرابطة الثلاثية؛ ويمكن أن ينتج ألكين أو ألكان بحسب شروط التفاعل."],
+["ما الأغوال (الكحولات)؟","مركبات عضوية تحتوي زمرة هيدروكسيل −OH مرتبطة بذرة كربون مشبعة."],
+["ما الصيغة العامة للكحول الأحادي المشبع المفتوح؟","R−OH، ويمكن تمثيل السلسلة المشبعة الأحادية بـ CnH2n+1OH."],
+["كيف تصنف الكحولات حسب نوع ذرة الكربون الحاملة لـ OH؟","أولية وثانوية وثالثية."],
+["ما الكحول الأولي؟","كحول ترتبط فيه ذرة الكربون الحاملة لـ OH بذرة كربون واحدة أو لا ترتبط إلا بمجموعة ألكيلية واحدة."],
+["ما الكحول الثانوي؟","كحول ترتبط فيه ذرة الكربون الحاملة لـ OH بذرتي كربون."],
+["ما الكحول الثالثي؟","كحول ترتبط فيه ذرة الكربون الحاملة لـ OH بثلاث ذرات كربون."],
+["ما الفرق بين الفينول والكحول؟","في الفينول ترتبط OH مباشرة بحلقة عطرية، أما في الكحول فترتبط بكربون أليفاتي مشبع."],
+["ما الروابط التي تستطيع جزيئات الكحولات تشكيلها؟","روابط هيدروجينية بين الجزيئات، إضافة إلى قوى تجاذب أخرى."],
+["لماذا تزداد درجة غليان الكحولات مقارنة بهيدروكربونات مشابهة الكتلة؟","بسبب الروابط الهيدروجينية بين جزيئاتها."],
+["كيف تتأثر ذوبانية الكحولات بالماء مع زيادة طول السلسلة الكربونية؟","تنخفض عموماً مع زيادة الجزء الهيدروكربوني غير القطبي."],
+["ما ناتج أكسدة الكحول الأولي غالباً؟","قد يتأكسد إلى ألدهيد ثم إلى حمض كربوكسيلي بحسب شروط الأكسدة."],
+["ما ناتج أكسدة الكحول الثانوي؟","كيتون."],
+["لماذا تقاوم الكحولات الثالثية الأكسدة المعتدلة؟","لعدم وجود هيدروجين على ذرة الكربون الحاملة لمجموعة OH."]
+]}
+];
+const KEY="pharmaStudyProgressV1";let state=JSON.parse(localStorage.getItem(KEY)||'{"known":[],"wrong":[]}');
+let current=null,index=0,onlyWrong=false,visible=false,deckCards=[];
+const $=id=>document.getElementById(id);
+function save(){localStorage.setItem(KEY,JSON.stringify(state));stats()}
+function stats(){$("total").textContent=new Set([...state.known,...state.wrong]).size;$("known").textContent=state.known.length;$("wrong").textContent=state.wrong.length}
+function renderSubjects(){$("subjects").innerHTML=DATA.map(d=>'<div class="subject" onclick="openDeck(\''+d.id+'\')"><h3>'+d.name+'</h3><div class="muted">'+d.desc+'</div><div class="count">'+d.cards.length+' بطاقة · اضغط للفتح</div></div>').join('')+["الحاسوب","اللغة الإنجليزية","اللغة العربية"].map(n=>'<div class="subject soon"><h3>'+n+'</h3><div class="muted">قريباً</div></div>').join('')}
+function goHome(){$("home").classList.remove("hidden");$("study").classList.add("hidden");current=null}
+function openDeck(id){current=DATA.find(d=>d.id===id);index=0;onlyWrong=false;$("home").classList.add("hidden");$("study").classList.remove("hidden");$("crumb").textContent=current.name;$("deckTitle").textContent=current.name;$("deckMeta").textContent=current.desc;$("mistakesBtn").textContent="مراجعة الأخطاء فقط";renderCard()}
+function toggleMistakes(){onlyWrong=!onlyWrong;index=0;$("mistakesBtn").textContent=onlyWrong?"عرض كل البطاقات":"مراجعة الأخطاء فقط";renderCard()}
+function getCards(){return onlyWrong?current.cards.filter((c,i)=>state.wrong.includes(current.id+":"+i)):current.cards}
+function renderCard(){deckCards=getCards();if(index>=deckCards.length)index=deckCards.length-1;if(index<0)index=0;
+$("position").textContent=deckCards.length?("البطاقة "+(index+1)+" من "+deckCards.length):"لا توجد بطاقات أخطأت بها في هذه المادة.";
+$("progress").style.width=deckCards.length?((index+1)/deckCards.length*100)+"%":"0%";
+if(!deckCards.length){$("cardArea").innerHTML='<div class="empty">ممتاز! لا توجد أخطاء مسجلة هنا حالياً.</div>';$("reveal").disabled=true;$("markActions").classList.add("hidden");return}
+$("reveal").disabled=false;visible=false;const c=deckCards[index];$("cardArea").innerHTML='<div class="cardq"><div class="muted">السؤال</div><div class="question">'+c[0]+'</div><div class="answer" id="answer">'+c[1]+'</div></div>';$("reveal").textContent="إظهار الإجابة";$("markActions").classList.add("hidden");$("prev").disabled=index===0;$("next").disabled=index===deckCards.length-1}
+function reveal(){if(!deckCards.length)return;visible=true;$("answer").style.display="block";$("reveal").textContent="الإجابة ظاهرة";$("markActions").classList.remove("hidden")}
+function mark(ok){const c=deckCards[index],original=current.cards.indexOf(c),key=current.id+":"+original;state.known=state.known.filter(x=>x!==key);state.wrong=state.wrong.filter(x=>x!==key);(ok?state.known:state.wrong).push(key);save();if(onlyWrong&&!ok){renderCard()}else if(index<deckCards.length-1){index++;renderCard()}else{renderCard()}}
+function move(n){index=Math.max(0,Math.min(deckCards.length-1,index+n));renderCard()}
+function resetDeck(){const ids=current.cards.map((c,i)=>current.id+":"+i);state.known=state.known.filter(x=>!ids.includes(x));state.wrong=state.wrong.filter(x=>!ids.includes(x));save();index=0;onlyWrong=false;$("mistakesBtn").textContent="مراجعة الأخطاء فقط";renderCard()}
+renderSubjects();stats();
+</script></body></html>
